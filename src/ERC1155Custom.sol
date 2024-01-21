@@ -16,7 +16,7 @@ import {IERC1155Errors} from "openzeppelin-contracts/contracts/interfaces/draft-
  * See https://eips.ethereum.org/EIPS/eip-1155
  * Originally based on code by Enjin: https://github.com/enjin/erc-1155
  */
-abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IERC1155Errors {
+abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataURI, IERC1155Errors {
 
     //保证 逻辑合约和代理合约 状态变量存储结构一致
     address private immutable _admin;
@@ -30,7 +30,7 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
     // Used as the URI for all token types by relying on ID substitution, e.g. https://token-cdn-domain/{id}.json
     string private _uri;
     // 铸币种类数量限制
-    uint256 private constant MAX_ID = 1314;
+    uint256 public constant MAX_ID = 1314;
     // 总铸币个数(包含NFT)
     uint256 public totalSupply;
     // 总铸币个数(不包含NFT)
@@ -38,7 +38,7 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
     // 已铸造的NFT个数
     uint256 public NFTCount;
 
-
+    error OwnableUnauthorizedAccount(address account);
 
 
     using Arrays for uint256[];
@@ -50,6 +50,14 @@ abstract contract ERC1155 is Context, ERC165, IERC1155, IERC1155MetadataURI, IER
     constructor(string memory uri_) {
         _setURI(uri_);
     }
+
+    modifier OnlyAdmin() {
+        if (msg.sender != _admin) {
+            revert OwnableUnauthorizedAccount(msg.sender);
+        }
+        _;
+    }
+
 
     /**
      * @dev See {IERC165-supportsInterface}.
