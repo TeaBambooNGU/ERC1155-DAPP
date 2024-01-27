@@ -19,6 +19,12 @@ import {IERC1155Errors} from "openzeppelin-contracts/contracts/interfaces/draft-
 abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataURI, IERC1155Errors {
 
     //保证 逻辑合约和代理合约 状态变量存储结构一致
+
+    // Token名称
+    string public name;
+    // Token代号
+    string public symbol;
+
     address private immutable _admin;
 
     bytes private wish;
@@ -47,7 +53,9 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
     /**
      * @dev See {_setURI}.
      */
-    constructor(string memory uri_) {
+    constructor(string memory name_, string memory symbol_, string memory uri_) {
+        name = name_;
+        symbol = symbol_;
         _setURI(uri_);
     }
 

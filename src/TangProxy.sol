@@ -15,6 +15,11 @@ interface ITransparentUpgradeableProxy is IERC1967 {
 contract TangProxy is ERC1967Proxy {
 
     //保证 逻辑合约和代理合约 状态变量存储结构一致
+    
+    // Token名称
+    string public name;
+    // Token代号
+    string public symbol;
 
     // An immutable address for the admin to avoid unnecessary SLOADs before each call
     // at the expense of removing the ability to change the admin once it's set.

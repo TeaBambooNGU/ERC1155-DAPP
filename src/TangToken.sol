@@ -5,7 +5,7 @@ import "./ERC1155Custom.sol";
 
 contract TangToken is ERC1155Custom {
 
-    constructor(string memory _uri) ERC1155Custom(_uri) {
+    constructor(string memory _name, string memory _symbol, string memory _uri) ERC1155Custom(_name,_symbol,_uri) {
         
     }
 
