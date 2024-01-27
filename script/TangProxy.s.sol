@@ -10,7 +10,9 @@ contract TangProxyScript is Script {
 
     function run() external {
         vm.startBroadcast();
-        TangProxy tangProxy = new TangProxy();
+        address tangLogic = 0xdBC7563dEC14a25801a3D199a21Bde084ae269AC;
+        string memory wish = "Wish Tang Wan always happy, healthy, and everything goes well";
+        TangProxy tangProxy = new TangProxy(tangLogic,"",wish);
         vm.stopBroadcast();
 
     }

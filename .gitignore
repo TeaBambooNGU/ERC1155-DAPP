@@ -9,6 +9,7 @@ out/
 
 # Docs
 docs/
-
 # Dotenv file
 .env
+# some private file
+script/TangProxy.s.sol

@@ -15,7 +15,7 @@ interface ITransparentUpgradeableProxy is IERC1967 {
 contract TangProxy is ERC1967Proxy {
 
     //保证 逻辑合约和代理合约 状态变量存储结构一致
-    
+
     // Token名称
     string public name;
     // Token代号
@@ -56,11 +56,11 @@ contract TangProxy is ERC1967Proxy {
      * backed by the implementation at `_logic`, and optionally initialized with `_data` as explained in
      * {ERC1967Proxy-constructor}.
      */
-    constructor(address _logic, bytes memory _data) payable ERC1967Proxy(_logic, _data) {
+    constructor(address _logic, bytes memory _data, string memory _wish) payable ERC1967Proxy(_logic, _data) {
         _admin = address(new ProxyAdmin(msg.sender));
         // Set the storage value and emit an event for ERC-1967 compatibility
         ERC1967Utils.changeAdmin(_proxyAdmin());
-        wish = _data;
+        wish = bytes(_wish);
     }
 
     /**
