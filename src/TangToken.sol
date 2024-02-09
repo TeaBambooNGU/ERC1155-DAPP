@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.20;
 
-import "./ERC1155Custom.sol";
+import {ERC1155Custom} from "./ERC1155Custom.sol";
 
 contract TangToken is ERC1155Custom {
 
