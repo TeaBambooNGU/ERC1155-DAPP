@@ -57,6 +57,7 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
         name = name_;
         symbol = symbol_;
         _setURI(uri_);
+        _admin = msg.sender;
     }
 
     modifier OnlyAdmin() {
