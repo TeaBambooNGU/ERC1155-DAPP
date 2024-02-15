@@ -28,6 +28,7 @@ contract HelperConfig is Script {
     }
 
     function getAnvilPriceFeed() public  returns (NetWorkingChainLinkPriceFeed memory) {
+        // 如果已经初始化了 就不用再初始化了
         if(activeChainlinkPriceFeed.priceFeedETHUSD != address(0)){
             return activeChainlinkPriceFeed;
         }
