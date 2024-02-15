@@ -5,18 +5,18 @@ import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
 contract HelperConfig is Script {
 
-    NetWorkingChainLinkPriceFeed public  chainlinkPriceFeed;
+    NetWorkingChainLinkPriceFeed public  activeChainlinkPriceFeed;
 
     address public constant ChainLinkSepoliaPriceFeed_ETH_USD= 0x694AA1769357215DE4FAC081bf1f309aDC325306;
     uint8 public constant ETH_USD_DECIMALS = 8;
-    int256 public constant ETH_USD_INITANSWER = 2000e18;
+    int256 public constant ETH_USD_INIT_PRICE = 2000e8;
 
     struct NetWorkingChainLinkPriceFeed {
         address priceFeedETHUSD;
     }
     constructor() {
         if (block.chainid == 11155111) {
-            chainlinkPriceFeed = getSepoliaPriceFeed();
+            activeChainlinkPriceFeed = getSepoliaPriceFeed();
         }
     }
 
@@ -28,16 +28,20 @@ contract HelperConfig is Script {
     }
 
     function getAnvilPriceFeed() public  returns (NetWorkingChainLinkPriceFeed memory) {
+        if(activeChainlinkPriceFeed.priceFeedETHUSD != address(0)){
+            return activeChainlinkPriceFeed;
+        }
         vm.startBroadcast();
-        MockV3Aggregator mockV3 = new MockV3Aggregator(ETH_USD_DECIMALS,ETH_USD_INITANSWER);
+        MockV3Aggregator mockV3 = new MockV3Aggregator(ETH_USD_DECIMALS,ETH_USD_INIT_PRICE);
         address anvilPriceFeedETHUSD = address(mockV3);
         vm.stopBroadcast();
+
         NetWorkingChainLinkPriceFeed memory anvilPriceFeed = NetWorkingChainLinkPriceFeed({
             priceFeedETHUSD: anvilPriceFeedETHUSD});
         return anvilPriceFeed;
     }
 
     function getChainLinkPriceFeed() public view returns (NetWorkingChainLinkPriceFeed memory) {
-        return chainlinkPriceFeed;  
+        return activeChainlinkPriceFeed;  
     }
 }
