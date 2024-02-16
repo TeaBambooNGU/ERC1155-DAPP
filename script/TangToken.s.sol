@@ -17,4 +17,11 @@ contract TangTokenScript is Script {
         return tangToken;
     }
 
+    function runByTest() external returns (TangToken){
+        vm.prank(makeAddr("admin"));
+        // ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/ 无聊猿的IPFS地址
+        TangToken tangToken = new TangToken("TANG","TANG1155","ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/");
+        return tangToken;
+    }
+
 }

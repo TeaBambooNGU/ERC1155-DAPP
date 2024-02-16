@@ -18,6 +18,8 @@ import {IERC1155Errors} from "openzeppelin-contracts/contracts/interfaces/draft-
  */
 abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataURI, IERC1155Errors {
 
+    error OwnableUnauthorizedAccount(address account);
+    
     //保证 逻辑合约和代理合约 状态变量存储结构一致
 
     // Token名称
@@ -43,8 +45,6 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
     uint256 public totalSupplyNotNFT;
     // 已铸造的NFT个数
     uint256 public NFTCount;
-
-    error OwnableUnauthorizedAccount(address account);
 
 
     using Arrays for uint256[];

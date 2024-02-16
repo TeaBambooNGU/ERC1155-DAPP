@@ -18,10 +18,10 @@ contract TangProxyScript is Script {
     }
 
     function runByLogic(address logicAddress) external returns (TangProxy) {
-        vm.startBroadcast();
+        //vm.startBroadcast();
         string memory wish = "Wish Tang Wan always happy, healthy, and everything goes well";
         TangProxy tangProxy = new TangProxy(logicAddress,"",wish);
-        vm.stopBroadcast();
+        //vm.stopBroadcast();
         return tangProxy;
     }
 
