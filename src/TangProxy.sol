@@ -14,6 +14,11 @@ interface ITransparentUpgradeableProxy is IERC1967 {
 
 contract TangProxy is ERC1967Proxy {
 
+    /**
+     * @dev The proxy caller is the current admin, and can't fallback to the proxy target.
+     */
+    error ProxyDeniedAdminAccess();
+
     //保证 逻辑合约和代理合约 状态变量存储结构一致
 
     // Token名称
@@ -43,11 +48,10 @@ contract TangProxy is ERC1967Proxy {
     uint256 public totalSupplyNotNFT;
     // 已铸造的NFT个数
     uint256 public NFTCount;
+    // chainlink dataFeed 货币交易对价格
+    address[] public chainLinkDataFeeds;
 
-    /**
-     * @dev The proxy caller is the current admin, and can't fallback to the proxy target.
-     */
-    error ProxyDeniedAdminAccess();
+
 
     event TangContractUpdateLogicSuccess(address indexed implementation, bytes wish);
 
@@ -61,6 +65,10 @@ contract TangProxy is ERC1967Proxy {
         // Set the storage value and emit an event for ERC-1967 compatibility
         ERC1967Utils.changeAdmin(_proxyAdmin());
         wish = bytes(_wish);
+    }
+    // 添加receive函数去掉警告
+    receive() external payable virtual {
+        _fallback();
     }
 
     /**

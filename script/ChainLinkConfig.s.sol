@@ -3,9 +3,11 @@ pragma solidity 0.8.20;
 import {Script} from "forge-std/Script.sol";
 import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
-contract HelperConfig is Script {
+contract ChainLinkConfig is Script {
 
     NetWorkingChainLinkPriceFeed public  activeChainlinkPriceFeed;
+
+    
 
     address public constant ChainLinkSepoliaPriceFeed_ETH_USD= 0x694AA1769357215DE4FAC081bf1f309aDC325306;
     uint8 public constant ETH_USD_DECIMALS = 8;
@@ -17,6 +19,8 @@ contract HelperConfig is Script {
     constructor() {
         if (block.chainid == 11155111) {
             activeChainlinkPriceFeed = getSepoliaPriceFeed();
+        }else if(block.chainid == 31337) {
+            activeChainlinkPriceFeed = getAnvilPriceFeed();
         }
     }
 
@@ -37,8 +41,6 @@ contract HelperConfig is Script {
         address anvilPriceFeedETHUSD = address(mockV3);
         vm.stopBroadcast();
 
-
-
         NetWorkingChainLinkPriceFeed memory anvilPriceFeed = NetWorkingChainLinkPriceFeed({
             priceFeedETHUSD: anvilPriceFeedETHUSD});
         return anvilPriceFeed;
@@ -47,4 +49,6 @@ contract HelperConfig is Script {
     function getChainLinkPriceFeed() public view returns (NetWorkingChainLinkPriceFeed memory) {
         return activeChainlinkPriceFeed;  
     }
+
+
 }

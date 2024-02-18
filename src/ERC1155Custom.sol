@@ -11,6 +11,8 @@ import {IERC165, ERC165} from "openzeppelin-contracts/contracts/utils/introspect
 import {Arrays} from "openzeppelin-contracts/contracts/utils/Arrays.sol";
 import {IERC1155Errors} from "openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol";
 
+
+
 /**
  * @dev Implementation of the basic standard multi-token.
  * See https://eips.ethereum.org/EIPS/eip-1155
@@ -45,6 +47,15 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
     uint256 public totalSupplyNotNFT;
     // 已铸造的NFT个数
     uint256 public NFTCount;
+    /**
+     * @notice chainlink dataFeed 货币交易对价格
+     * 数组中的地址顺序为特定顺序 对应不同的token交易对
+     * 日后扩展按顺序添加，并在注释中注明
+     * 0: ETH / USD
+     * 1: BTC / USD
+     */
+    address[] public chainLinkDataFeeds;
+
 
 
     using Arrays for uint256[];

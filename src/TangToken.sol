@@ -2,11 +2,13 @@
 pragma solidity ^0.8.20;
 
 import {ERC1155Custom} from "./ERC1155Custom.sol";
+import {DataFeedConsumerV3Factory} from "./DataFeedConsumerV3Factory.sol";
+import {ChainLinkEnum} from "./ChainLinkEnum.sol";
 
 contract TangToken is ERC1155Custom {
 
-    constructor(string memory _name, string memory _symbol, string memory _uri) ERC1155Custom(_name,_symbol,_uri) {
-        
+    constructor(string memory _name, string memory _symbol, string memory _uri, address[] memory _chainLinkDataFeeds) ERC1155Custom(_name,_symbol,_uri) {
+        chainLinkDataFeeds = _chainLinkDataFeeds;
     }
 
     function mint(address to, uint256 id, uint256 amount) external  {
@@ -30,5 +32,14 @@ contract TangToken is ERC1155Custom {
         _burn(from,id,value);
     }
 
+    function getETH2USDLatestAnswer () external view returns (int) {
+        DataFeedConsumerV3Factory dataFeedETH2USD = DataFeedConsumerV3Factory(chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)]);
+        return dataFeedETH2USD.getChainlinkDataFeedLatestAnswer();
+    }
+
+    function getBTC2USDLatestAnswer () external view returns (int) {
+        DataFeedConsumerV3Factory dataFeedETH2USD = DataFeedConsumerV3Factory(chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.BTC_USD)]);
+        return dataFeedETH2USD.getChainlinkDataFeedLatestAnswer();
+    }
 
 }
