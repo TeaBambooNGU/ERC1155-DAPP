@@ -3,6 +3,8 @@ pragma solidity ^0.8.20;
 
 import {Script} from "forge-std/Script.sol";
 import {TangProxy} from "../src/TangProxy.sol";
+import {ChainLinkConfig,NetWorkingChainLinkPriceFeed} from "./ChainLinkConfig.s.sol";
+import {ChainLinkEnum} from "../src/ChainLinkEnum.sol";
 
 contract TangProxyScript is Script {
     address private admin = makeAddr("admin");
@@ -11,18 +13,23 @@ contract TangProxyScript is Script {
 
     /**
      * @notice chainlink dataFeed 货币交易对价格
-     * 数组中的地址顺序为特定顺序 对应不同的token交易对
-     * 日后扩展按顺序添加，并在注释中注明
+     * 数组中的地址顺序为ChainLinkEnum枚举顺序 对应不同的token交易对
      * see src/ChainLinkEnum.sol
      * 0: ETH / USD
      * 1: BTC / USD
      */
     address[] public chainLinkDataFeeds = new address[](2);
 
-    function setUp() public {
+    function init() private {
         admin = makeAddr("admin");
-        chainLinkDataFeeds[0] = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
-        chainLinkDataFeeds[1] = 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43;
+        ChainLinkConfig chainlinkConfig = new ChainLinkConfig();
+        NetWorkingChainLinkPriceFeed memory feedStruct = chainlinkConfig.getActiveChainlinkPriceFeed();
+        chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)]= feedStruct.priceFeedETH2USD;
+        chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.BTC_USD)]= feedStruct.priceFeedBTC2USD;
+    }
+
+    function setUp() public {
+        init();
     }
 
     function run() external returns (TangProxy) {
@@ -34,8 +41,7 @@ contract TangProxyScript is Script {
     }
 
     function runByLogic(address logicAddress) external returns (TangProxy) {
-        chainLinkDataFeeds[0] = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
-        chainLinkDataFeeds[1] = 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43;
+        init();
         vm.startBroadcast(admin);
         TangProxy tangProxy = new TangProxy(logicAddress, "", wish,chainLinkDataFeeds);
         vm.stopBroadcast();

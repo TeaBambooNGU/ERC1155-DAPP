@@ -73,4 +73,12 @@ contract TangTokenTest is Test {
          assertEq(success, true);
     
     }
+
+    function testGetBTC2USD() public {
+        (bool success, bytes memory data) = address(proxyContract).call(abi.encodeWithSignature("getBTC2USDLatestAnswer()"));
+        if(success){
+            console2.log(abi.decode(data, (int256)));
+        }
+        assertEq(success, true);
+    }
 }

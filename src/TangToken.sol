@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {ERC1155Custom} from "./ERC1155Custom.sol";
-import {AggregatorV3Interface} from "./DataFeedConsumerV3Factory.sol";
+import {AggregatorV3Interface} from "chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {ChainLinkEnum} from "./ChainLinkEnum.sol";
 
 contract TangToken is ERC1155Custom {
