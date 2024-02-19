@@ -2,13 +2,12 @@
 pragma solidity ^0.8.20;
 
 import {ERC1155Custom} from "./ERC1155Custom.sol";
-import {DataFeedConsumerV3Factory} from "./DataFeedConsumerV3Factory.sol";
+import {AggregatorV3Interface} from "./DataFeedConsumerV3Factory.sol";
 import {ChainLinkEnum} from "./ChainLinkEnum.sol";
 
 contract TangToken is ERC1155Custom {
 
-    constructor(string memory _name, string memory _symbol, string memory _uri, address[] memory _chainLinkDataFeeds) ERC1155Custom(_name,_symbol,_uri) {
-        chainLinkDataFeeds = _chainLinkDataFeeds;
+    constructor(string memory _name, string memory _symbol, string memory _uri) ERC1155Custom(_name,_symbol,_uri) {
     }
 
     function mint(address to, uint256 id, uint256 amount) external  {
@@ -32,14 +31,38 @@ contract TangToken is ERC1155Custom {
         _burn(from,id,value);
     }
 
-    function getETH2USDLatestAnswer () external view returns (int) {
-        DataFeedConsumerV3Factory dataFeedETH2USD = DataFeedConsumerV3Factory(chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)]);
-        return dataFeedETH2USD.getChainlinkDataFeedLatestAnswer();
+    function getETH2USDLatestAnswer() external view returns (int) {
+        AggregatorV3Interface dataFeedETH2USD = AggregatorV3Interface(chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)]);
+                // prettier-ignore
+        (
+            /* uint80 roundID */,
+            int answer,
+            /*uint startedAt*/,
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
+        ) = dataFeedETH2USD.latestRoundData();
+        uint8 decimals = dataFeedETH2USD.decimals();
+        int decimal = int(10**decimals);
+        int result = answer / decimal;
+        return result;
     }
 
-    function getBTC2USDLatestAnswer () external view returns (int) {
-        DataFeedConsumerV3Factory dataFeedETH2USD = DataFeedConsumerV3Factory(chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.BTC_USD)]);
-        return dataFeedETH2USD.getChainlinkDataFeedLatestAnswer();
+    function getETH2USDVersion() external view returns (uint256) {
+        AggregatorV3Interface dataFeedETH2USD = AggregatorV3Interface(chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)]);
+        return dataFeedETH2USD.version();
+    }
+
+    function getBTC2USDLatestAnswer() external view returns (int) {
+        AggregatorV3Interface dataFeedETH2USD = AggregatorV3Interface(chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.BTC_USD)]);
+                // prettier-ignore
+        (
+            /* uint80 roundID */,
+            int answer,
+            /*uint startedAt*/,
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
+        ) = dataFeedETH2USD.latestRoundData();
+        return answer;
     }
 
 }

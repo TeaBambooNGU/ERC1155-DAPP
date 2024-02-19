@@ -60,11 +60,12 @@ contract TangProxy is ERC1967Proxy {
      * backed by the implementation at `_logic`, and optionally initialized with `_data` as explained in
      * {ERC1967Proxy-constructor}.
      */
-    constructor(address _logic, bytes memory _data, string memory _wish) payable ERC1967Proxy(_logic, _data) {
+    constructor(address _logic, bytes memory _data, string memory _wish,address[] memory _chainLinkDataFeeds) payable ERC1967Proxy(_logic, _data) {
         _admin = address(new ProxyAdmin(msg.sender));
         // Set the storage value and emit an event for ERC-1967 compatibility
         ERC1967Utils.changeAdmin(_proxyAdmin());
         wish = bytes(_wish);
+        chainLinkDataFeeds = _chainLinkDataFeeds;
     }
     // 添加receive函数去掉警告
     receive() external payable virtual {

@@ -14,20 +14,16 @@ contract TangTokenScript is Script {
      * 0: ETH / USD
      * 1: BTC / USD
      */
-    address[] public chainLinkDataFeeds;
+    address[] public chainLinkDataFeeds = new address[](2);
 
     function setUp() public {
-        admin = makeAddr("admin");
-        chainLinkDataFeeds[0] = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
-        chainLinkDataFeeds[1] = 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43;
     }
 
     function run() external returns (TangToken) {
         vm.startBroadcast();
         // ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/ 无聊猿的IPFS地址
         TangToken tangToken = new TangToken(
-            "TANG", "TANG1155", "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/", chainLinkDataFeeds
-        );
+            "TANG", "TANG1155", "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/");
         vm.stopBroadcast();
         return tangToken;
     }
@@ -36,8 +32,7 @@ contract TangTokenScript is Script {
         vm.startBroadcast(admin);
         // ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/ 无聊猿的IPFS地址
         TangToken tangToken = new TangToken(
-            "TANG", "TANG1155", "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/", chainLinkDataFeeds
-        );
+            "TANG", "TANG1155", "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/");
         vm.stopBroadcast();
         return tangToken;
     }
