@@ -6,9 +6,13 @@ import {TangProxy} from "../src/TangProxy.sol";
 
 contract TangProxyScript is Script {
 
+    address private admin = makeAddr("admin");
+
     string private constant wish = "Wish Tang Wan always happy, healthy, and everything goes well";
 
-    function setUp() public {}
+    function setUp() public {
+        admin = makeAddr("admin");
+    }
 
     function run() external returns (TangProxy){
         vm.startBroadcast();
@@ -19,7 +23,7 @@ contract TangProxyScript is Script {
     }
 
     function runByLogic(address logicAddress) external returns (TangProxy) {
-        vm.startBroadcast();
+        vm.startBroadcast(admin);
         TangProxy tangProxy = new TangProxy(logicAddress,"",wish);
         vm.stopBroadcast();
         return tangProxy;

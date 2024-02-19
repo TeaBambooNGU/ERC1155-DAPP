@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.20;
 
-import {Script} from "forge-std/Script.sol";
+import {Script,console} from "forge-std/Script.sol";
 import {TangToken} from "../src/TangToken.sol";
 
 contract TangTokenScript is Script {
-    address private admin;
+    address private admin = makeAddr("admin");
     /**
      * @notice chainlink dataFeed 货币交易对价格
      * 数组中的地址顺序为特定顺序 对应不同的token交易对

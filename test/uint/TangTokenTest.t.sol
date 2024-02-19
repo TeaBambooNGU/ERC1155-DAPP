@@ -12,14 +12,13 @@ contract TangTokenTest is Test {
     
     function setUp() public {
         admin = makeAddr("admin");
+        user = makeAddr("receiver");
         // 先部署逻辑合约
         TangTokenScript tangtokenScript = new TangTokenScript();
         TangToken tangtoken = tangtokenScript.runByTest();
         // 再部署代理合约
         TangProxyScript tangProxyScript = new TangProxyScript(); 
         proxyContract = tangProxyScript.runByLogic(address(tangtoken));
-        user = makeAddr("receiver");
-        
     }
 
 

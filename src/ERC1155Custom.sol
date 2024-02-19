@@ -20,7 +20,7 @@ import {IERC1155Errors} from "openzeppelin-contracts/contracts/interfaces/draft-
  */
 abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataURI, IERC1155Errors {
 
-    error OwnableUnauthorizedAccount(address account);
+    error ERC1155Custom_OwnableUnauthorizedAccount(address account);
     
     //保证 逻辑合约和代理合约 状态变量存储结构一致
 
@@ -73,7 +73,7 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
 
     modifier OnlyAdmin() {
         if (msg.sender != _admin) {
-            revert OwnableUnauthorizedAccount(msg.sender);
+            revert ERC1155Custom_OwnableUnauthorizedAccount(msg.sender);
         }
         _;
     }
