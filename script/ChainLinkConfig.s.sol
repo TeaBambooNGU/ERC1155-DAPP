@@ -1,37 +1,50 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity 0.8.20;
+
 import {Script} from "forge-std/Script.sol";
 import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
 struct NetWorkingChainLinkPriceFeed {
-        address priceFeedETH2USD;
-        address priceFeedBTC2USD;
+    address priceFeedETH2USD;
+    address priceFeedBTC2USD;
+}
+
+struct NetWorkingChainLinkVRF {
+    address vrfCoordinator;
+    address linkToken;
+    bytes32 keyHash;
+    uint64 subscriptionId;
+    uint16 requestConfirmations;
+    uint32 callbackGasLimit;
+    uint32 numWords;
 }
 
 contract ChainLinkConfig is Script {
+    NetWorkingChainLinkPriceFeed public activeChainlinkPriceFeed;
+    NetWorkingChainLinkVRF public activeChainLinkVRF;
 
-    NetWorkingChainLinkPriceFeed public  activeChainlinkPriceFeed;
-
-    
-
-    address public constant ChainLinkSepoliaPriceFeed_ETH_USD= 0x694AA1769357215DE4FAC081bf1f309aDC325306;
-    address public constant ChainLinkSepoliaPriceFeed_BTC_USD= 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43;
+    address public constant ChainLinkSepoliaPriceFeed_ETH_USD = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
+    address public constant ChainLinkSepoliaPriceFeed_BTC_USD = 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43;
+    address public constant ChainLinkSepoliaVRF = 0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625;
+    address public constant ChainLinkSepoliaLINK_TOKEN = 0x779877A7B0D9E8603169DdbD7836e478b4624789;
     uint8 public constant ETH_USD_DECIMALS = 8;
     uint8 public constant BTC_USD_DECIMALS = 8;
     int256 public constant ETH_USD_INIT_PRICE = 2000e8;
     int256 public constant BTC_USD_INIT_PRICE = 52136e8;
-
+    bytes32 public constant ChainLinkSepoliaVRF_kEYHASH =
+        0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c;
+    uint64 public constant SUBSCRIPTIONID = 9456;
 
     constructor() {
         if (block.chainid == 11155111) {
             activeChainlinkPriceFeed = getSepoliaPriceFeed();
-        }else if(block.chainid == 31337) {
+            activeChainLinkVRF = getSepoliaVRF();
+        } else if (block.chainid == 31337) {
             activeChainlinkPriceFeed = getAnvilPriceFeed();
         }
     }
 
     function getSepoliaPriceFeed() private pure returns (NetWorkingChainLinkPriceFeed memory) {
-
         NetWorkingChainLinkPriceFeed memory sepoliaPriceFeed = NetWorkingChainLinkPriceFeed({
             priceFeedETH2USD: ChainLinkSepoliaPriceFeed_ETH_USD,
             priceFeedBTC2USD: ChainLinkSepoliaPriceFeed_BTC_USD
@@ -39,16 +52,16 @@ contract ChainLinkConfig is Script {
         return sepoliaPriceFeed;
     }
 
-    function getAnvilPriceFeed() public  returns (NetWorkingChainLinkPriceFeed memory) {
+    function getAnvilPriceFeed() private returns (NetWorkingChainLinkPriceFeed memory) {
         // 如果已经初始化了 就不用再初始化了
-        if(activeChainlinkPriceFeed.priceFeedETH2USD != address(0)){
+        if (activeChainlinkPriceFeed.priceFeedETH2USD != address(0)) {
             return activeChainlinkPriceFeed;
         }
         vm.startBroadcast();
-        MockV3Aggregator mockV3 = new MockV3Aggregator(ETH_USD_DECIMALS,ETH_USD_INIT_PRICE);
+        MockV3Aggregator mockV3 = new MockV3Aggregator(ETH_USD_DECIMALS, ETH_USD_INIT_PRICE);
         address anvilPriceFeedETH2USD = address(mockV3);
 
-        MockV3Aggregator mockV2 = new MockV3Aggregator(BTC_USD_DECIMALS,BTC_USD_INIT_PRICE);
+        MockV3Aggregator mockV2 = new MockV3Aggregator(BTC_USD_DECIMALS, BTC_USD_INIT_PRICE);
         address anvilPriceFeedBTC2USD = address(mockV2);
 
         vm.stopBroadcast();
@@ -60,9 +73,25 @@ contract ChainLinkConfig is Script {
         return anvilPriceFeed;
     }
 
-    function getActiveChainlinkPriceFeed() public view returns (NetWorkingChainLinkPriceFeed memory) {
-        return activeChainlinkPriceFeed;  
+    function getSepoliaVRF() private pure returns (NetWorkingChainLinkVRF memory) {
+        NetWorkingChainLinkVRF memory netWorkingChainLinkVRF = NetWorkingChainLinkVRF({
+            vrfCoordinator: ChainLinkSepoliaVRF,
+            linkToken: ChainLinkSepoliaLINK_TOKEN,
+            keyHash: ChainLinkSepoliaVRF_kEYHASH,
+            subscriptionId: SUBSCRIPTIONID,
+            requestConfirmations: 3,
+            callbackGasLimit: 1000000,
+            numWords: 3
+        });
+        return netWorkingChainLinkVRF;
     }
 
+    function getActiveChainlinkPriceFeed() public view returns (NetWorkingChainLinkPriceFeed memory) {
+        return activeChainlinkPriceFeed;
+    }
+
+    function getActiveChainlinkVRF() public view returns (NetWorkingChainLinkVRF memory) {
+        return activeChainLinkVRF;
+    }
 
 }

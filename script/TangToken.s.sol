@@ -3,36 +3,46 @@ pragma solidity ^0.8.20;
 
 import {Script,console} from "forge-std/Script.sol";
 import {TangToken} from "../src/TangToken.sol";
+import {ChainLinkConfig,NetWorkingChainLinkVRF} from "./ChainLinkConfig.s.sol";
 
 contract TangTokenScript is Script {
     address private admin = makeAddr("admin");
-    /**
-     * @notice chainlink dataFeed 货币交易对价格
-     * 数组中的地址顺序为特定顺序 对应不同的token交易对
-     * 日后扩展按顺序添加，并在注释中注明
-     * see src/ChainLinkEnum.sol
-     * 0: ETH / USD
-     * 1: BTC / USD
-     */
-    address[] public chainLinkDataFeeds = new address[](2);
+    NetWorkingChainLinkVRF private chainLinkVRF;
+
+    modifier init() {
+        ChainLinkConfig chainlinkConfig = new ChainLinkConfig();
+        chainLinkVRF = chainlinkConfig.getActiveChainlinkVRF();
+        _;
+    }
+
 
     function setUp() public {
     }
 
-    function run() external returns (TangToken) {
+    function run() external init returns (TangToken){
         vm.startBroadcast();
         // ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/ 无聊猿的IPFS地址
         TangToken tangToken = new TangToken(
-            "TANG", "TANG1155", "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/");
+            "TANG", 
+            "TANG1155", 
+            "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/",
+            chainLinkVRF.vrfCoordinator,
+            chainLinkVRF.numWords
+            );
         vm.stopBroadcast();
         return tangToken;
     }
 
-    function runByTest() external returns (TangToken) {
+    function runByTest() external init returns (TangToken) {
         vm.startBroadcast(admin);
         // ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/ 无聊猿的IPFS地址
         TangToken tangToken = new TangToken(
-            "TANG", "TANG1155", "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/");
+            "TANG", 
+            "TANG1155", 
+            "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/",
+            chainLinkVRF.vrfCoordinator,
+            chainLinkVRF.numWords
+            );
         vm.stopBroadcast();
         return tangToken;
     }

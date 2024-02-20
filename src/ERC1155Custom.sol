@@ -47,14 +47,10 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
     uint256 public totalSupplyNotNFT;
     // 已铸造的NFT个数
     uint256 public NFTCount;
-    /**
-     * @notice chainlink dataFeed 货币交易对价格
-     * 数组中的地址顺序为特定顺序 对应不同的token交易对
-     * 日后扩展按顺序添加，并在注释中注明
-     * 0: ETH / USD
-     * 1: BTC / USD
-     */
-    address[] public chainLinkDataFeeds;
+    // 持有者列表
+    address[] public totalPeople;
+    // 是否是小糖人
+    mapping(address => bool) isTangPeople;
 
 
 

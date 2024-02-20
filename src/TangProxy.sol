@@ -5,6 +5,7 @@ import {ERC1967Utils} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC19
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC1967} from "openzeppelin-contracts/contracts/interfaces/IERC1967.sol";
 import {ProxyAdmin} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
+import {VRFCoordinatorV2Interface} from "chainlink-brownie-contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
 
 interface ITransparentUpgradeableProxy is IERC1967 {
@@ -48,8 +49,41 @@ contract TangProxy is ERC1967Proxy {
     uint256 public totalSupplyNotNFT;
     // 已铸造的NFT个数
     uint256 public NFTCount;
+    // 持有者列表
+    address[] public totalPeople;
+    // 是否是小糖人
+    mapping(address => bool) isTangPeople;
+
+
+    // 这2个变量来源于 ConfirmedOwnerWithProposal.sol
+    address private s_owner;
+    address private s_pendingOwner;
+    
     // chainlink dataFeed 货币交易对价格
     address[] public chainLinkDataFeeds;
+    
+    // VRFCoordinator合约
+    VRFCoordinatorV2Interface private immutable vrfCoordinator;
+    // ChainLink订阅ID
+    uint64 s_subscriptionId;
+    // ChainLink费率哈希
+    bytes32 s_keyHash;
+    // 请求被确认的区块数
+    uint16 s_requestConfirmations;
+    // 回调接口限制的最大Gas
+    uint32 s_callbackGasLimit;
+    // 返回多少个随机数
+    uint32 immutable i_numWords;
+    
+    struct RequestStatus {
+        bool fulfilled; // whether the request has been successfully fulfilled
+        bool exists; // whether a requestId exists
+        uint256[] randomWords;
+    }
+    mapping(uint256 => RequestStatus) public s_requests; /* requestId --> requestStatus */
+    // past requests Id.
+    uint256[] public requestIds;
+    uint256 public lastRequestId;
 
 
 
@@ -60,12 +94,29 @@ contract TangProxy is ERC1967Proxy {
      * backed by the implementation at `_logic`, and optionally initialized with `_data` as explained in
      * {ERC1967Proxy-constructor}.
      */
-    constructor(address _logic, bytes memory _data, string memory _wish,address[] memory _chainLinkDataFeeds) payable ERC1967Proxy(_logic, _data) {
+    constructor(
+        address _logic, 
+        bytes memory _data, 
+        string memory _wish,
+        address[] memory _chainLinkDataFeeds,
+        address _vrfCoordinator,
+        bytes32 _keyHash,
+        uint64 _subscriptionId,
+        uint16 _requestConfirmations,
+        uint32 _callbackGasLimit,
+        uint32 _numWords
+        ) payable ERC1967Proxy(_logic, _data) {
         _admin = address(new ProxyAdmin(msg.sender));
         // Set the storage value and emit an event for ERC-1967 compatibility
         ERC1967Utils.changeAdmin(_proxyAdmin());
         wish = bytes(_wish);
         chainLinkDataFeeds = _chainLinkDataFeeds;
+        vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinator);
+        s_keyHash = _keyHash;
+        s_subscriptionId = _subscriptionId;
+        s_requestConfirmations = _requestConfirmations;
+        s_callbackGasLimit = _callbackGasLimit;
+        i_numWords = _numWords;
     }
     // 添加receive函数去掉警告
     receive() external payable virtual {
