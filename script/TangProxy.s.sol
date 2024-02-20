@@ -20,19 +20,21 @@ contract TangProxyScript is Script {
      */
     address[] public chainLinkDataFeeds = new address[](2);
 
-    function init() private {
+    modifier init {
         admin = makeAddr("admin");
         ChainLinkConfig chainlinkConfig = new ChainLinkConfig();
         NetWorkingChainLinkPriceFeed memory feedStruct = chainlinkConfig.getActiveChainlinkPriceFeed();
         chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)]= feedStruct.priceFeedETH2USD;
         chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.BTC_USD)]= feedStruct.priceFeedBTC2USD;
+        _;
     }
+
 
     function setUp() public {
-        init();
+
     }
 
-    function run() external returns (TangProxy) {
+    function run() external init returns (TangProxy) {
         vm.startBroadcast();
         address tangLogic = 0xdBC7563dEC14a25801a3D199a21Bde084ae269AC;
         TangProxy tangProxy = new TangProxy(tangLogic, "", wish,chainLinkDataFeeds);
@@ -40,11 +42,10 @@ contract TangProxyScript is Script {
         return tangProxy;
     }
 
-    function runByLogic(address logicAddress) external returns (TangProxy) {
-        init();
+    function runByLogic(address logicAddress) external init returns (TangProxy) {
         vm.startBroadcast(admin);
         TangProxy tangProxy = new TangProxy(logicAddress, "", wish,chainLinkDataFeeds);
         vm.stopBroadcast();
         return tangProxy;
     }
-}
+} 

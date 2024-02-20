@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {AggregatorV3Interface} from "chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract DataFeedConsumerV3Factory {
+contract DataFeedConsumerV3 {
 
     AggregatorV3Interface public immutable chainlinkFeed;
 
