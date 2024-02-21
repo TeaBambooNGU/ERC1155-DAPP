@@ -10,6 +10,7 @@ import {ConfirmedOwner} from "chainlink-brownie-contracts/src/v0.8/shared/access
 
 contract TangToken is ERC1155Custom,ConfirmedOwner{
     error OnlyCoordinatorCanFulfill(address have, address want);
+    error TangToken_AwardedNotInTime(address sender, uint256 currentTimestamp);
 
 
     // 保证 逻辑合约和代理合约 状态变量存储结构一致
@@ -34,6 +35,8 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
     uint32 s_callbackGasLimit;
     // 返回多少个随机数 storage 和 immutable 不会占用状态变量存储空间
     uint32 immutable i_numWords;
+
+    uint48 public constant AWARD_INTERVAL = 2 days;
     
     struct RequestStatus {
         bool fulfilled; // whether the request has been successfully fulfilled
@@ -45,8 +48,9 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
     uint256[] public requestIds;
     uint256 public lastRequestId;
 
-    event VRF_RequestSent(uint256 requestId, uint32 numWords);
-    event VRF_RequestFulfilled(uint256 requestId, uint256[] randomWords);
+    event VRF_RequestSent(uint256 indexed requestId, uint32 indexed numWords);
+    event VRF_RequestFulfilled(uint256 indexed requestId, uint256[] randomWords);
+    event TangToken_Awarded(address indexed tangPeople);
 
     constructor(
         string memory _name, 
@@ -115,6 +119,11 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
     }
 
     function awardPeopleTokens() external {
+
+        if(s_lastAwardTime + AWARD_INTERVAL > block.timestamp){
+            revert TangToken_AwardedNotInTime(msg.sender, block.timestamp);
+        }
+
        // Will revert if subscription is not set and funded.
         uint256 requestId = vrfCoordinator.requestRandomWords(
             s_keyHash,
@@ -140,8 +149,19 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
         require(s_requests[_requestId].exists, "request not found");
         s_requests[_requestId].fulfilled = true;
         s_requests[_requestId].randomWords = _randomWords;
-
         emit VRF_RequestFulfilled(_requestId, _randomWords);
+
+        address[] memory totalPeople = s_totalPeople;
+        for(uint i = 0; i < _randomWords.length; i++){
+            uint awardIndex = _randomWords[i] % totalPeople.length;
+            address awardPeople = totalPeople[awardIndex];
+            if(!s_peopleAwarded[awardPeople]){
+                s_peopleAwarded[awardPeople] = true;
+                _mint(awardPeople, 1, 520,"");
+                emit TangToken_Awarded(awardPeople);
+            }
+        }
+        
     }
 
 

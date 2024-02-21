@@ -3,6 +3,8 @@ pragma solidity 0.8.20;
 
 import {Script} from "forge-std/Script.sol";
 import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
+import {VRFCoordinatorV2Interface} from "chainlink-brownie-contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import {VRFCoordinatorV2Mock} from "chainlink-brownie-contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
 
 struct NetWorkingChainLinkPriceFeed {
     address priceFeedETH2USD;
@@ -22,6 +24,9 @@ struct NetWorkingChainLinkVRF {
 contract ChainLinkConfig is Script {
     NetWorkingChainLinkPriceFeed public activeChainlinkPriceFeed;
     NetWorkingChainLinkVRF public activeChainLinkVRF;
+    uint256 public activeDeployOwnerKey;
+
+    address public constant SepoliaWallet = 0xDd7a00B6800db7E458495E37A22c8aea48138a14;
 
     address public constant ChainLinkSepoliaPriceFeed_ETH_USD = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
     address public constant ChainLinkSepoliaPriceFeed_BTC_USD = 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43;
@@ -31,16 +36,19 @@ contract ChainLinkConfig is Script {
     uint8 public constant BTC_USD_DECIMALS = 8;
     int256 public constant ETH_USD_INIT_PRICE = 2000e8;
     int256 public constant BTC_USD_INIT_PRICE = 52136e8;
-    bytes32 public constant ChainLinkSepoliaVRF_kEYHASH =
-        0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c;
+    bytes32 public constant ChainLinkSepoliaVRF_kEYHASH = 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c;
     uint64 public constant SUBSCRIPTIONID = 9456;
+    
 
     constructor() {
         if (block.chainid == 11155111) {
             activeChainlinkPriceFeed = getSepoliaPriceFeed();
             activeChainLinkVRF = getSepoliaVRF();
+            activeDeployOwnerKey = vm.envUint("SEPOLIA_WALLET_KEY");
         } else if (block.chainid == 31337) {
             activeChainlinkPriceFeed = getAnvilPriceFeed();
+            activeChainLinkVRF = getAnvilVRF();
+            activeDeployOwnerKey = vm.envUint("ANVIL_WALLET_KEY");
         }
     }
 
@@ -86,12 +94,44 @@ contract ChainLinkConfig is Script {
         return netWorkingChainLinkVRF;
     }
 
+    function getAnvilVRF() private returns (NetWorkingChainLinkVRF memory) {
+
+        vm.startBroadcast();
+        VRFCoordinatorV2Mock vrfCoordinatorMock = new VRFCoordinatorV2Mock(
+            0.25 ether, // 基础费用
+            1e6 // 每单位gas需要支付的Link
+            );
+        vm.stopBroadcast();
+
+        NetWorkingChainLinkVRF memory netWorkingChainLinkVRF = NetWorkingChainLinkVRF({
+            vrfCoordinator: address(vrfCoordinatorMock),
+            linkToken: address(0),
+            keyHash: "",
+            subscriptionId: 0,
+            requestConfirmations: 3,
+            callbackGasLimit: 1000000,
+            numWords: 3
+        });
+        return netWorkingChainLinkVRF;
+    }
+
+    function addConsumer(address consumer) public {
+        vm.startBroadcast(SepoliaWallet);
+        VRFCoordinatorV2Interface vrfCoordinator = VRFCoordinatorV2Interface(activeChainLinkVRF.vrfCoordinator);
+        vrfCoordinator.addConsumer(activeChainLinkVRF.subscriptionId, consumer);
+        vm.stopBroadcast();
+    }
+
     function getActiveChainlinkPriceFeed() public view returns (NetWorkingChainLinkPriceFeed memory) {
         return activeChainlinkPriceFeed;
     }
 
     function getActiveChainlinkVRF() public view returns (NetWorkingChainLinkVRF memory) {
         return activeChainLinkVRF;
+    }
+
+    function getActiveDeployOwner() public view returns (uint256) {
+        return activeDeployOwnerKey;
     }
 
 }

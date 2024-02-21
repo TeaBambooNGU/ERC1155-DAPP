@@ -21,10 +21,11 @@ contract TangProxyScript is Script {
     address[] public chainLinkDataFeeds = new address[](2);
 
     NetWorkingChainLinkVRF private chainLinkVRF;
+    ChainLinkConfig private chainlinkConfig;
 
     modifier init() {
         admin = makeAddr("admin");
-        ChainLinkConfig chainlinkConfig = new ChainLinkConfig();
+        chainlinkConfig = new ChainLinkConfig();
         NetWorkingChainLinkPriceFeed memory feedStruct = chainlinkConfig.getActiveChainlinkPriceFeed();
         chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)] = feedStruct.priceFeedETH2USD;
         chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.BTC_USD)] = feedStruct.priceFeedBTC2USD;
@@ -68,6 +69,9 @@ contract TangProxyScript is Script {
             chainLinkVRF.numWords
         );
         vm.stopBroadcast();
+        // 添加VRF消费者
+        chainlinkConfig.addConsumer(address(tangProxy));
+        
         return tangProxy;
     }
 }

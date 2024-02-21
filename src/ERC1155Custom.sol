@@ -42,15 +42,19 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
     // 铸币种类数量限制
     uint256 public constant MAX_ID = 1314;
     // 总铸币个数(包含NFT)
-    uint256 public totalSupply;
+    uint256 public s_totalSupply;
     // 总铸币个数(不包含NFT)
-    uint256 public totalSupplyNotNFT;
+    uint256 public s_totalSupplyNotNFT;
     // 已铸造的NFT个数
-    uint256 public NFTCount;
+    uint256 public s_NFTCount;
     // 持有者列表
-    address[] public totalPeople;
+    address[] public s_totalPeople;
     // 是否是小糖人
-    mapping(address => bool) isTangPeople;
+    mapping(address => bool) s_isTangPeople;
+    // 上一次奖励时间
+    uint256 public s_lastAwardTime;
+    // 是否已经奖励过
+    mapping(address => bool) s_peopleAwarded;
 
 
 
@@ -210,6 +214,10 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
 
             if (to != address(0)) {
                 _balances[id][to] += value;
+                if(!s_isTangPeople[to]){
+                    s_isTangPeople[to] = true;
+                    s_totalPeople.push(to);
+                }
             }
         }
 

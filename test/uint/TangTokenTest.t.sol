@@ -5,10 +5,17 @@ import {Test, console2} from "forge-std/Test.sol";
 import {ChainLinkEnum} from "../../src/ChainLinkEnum.sol";
 import {TangTokenScript, TangToken} from "../../script/TangToken.s.sol";
 import {TangProxyScript, TangProxy} from "../../script/TangProxy.s.sol";
+import {VRFCoordinatorV2Mock} from "chainlink-brownie-contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+
+
+
 contract TangTokenTest is Test {
     TangProxy public proxyContract;
     address private user;
     address private admin;
+
+    event VRF_RequestSent(uint256 indexed requestId, uint32 indexed numWords);
+
 
     function setUp() public {
         admin = makeAddr("admin");
@@ -80,5 +87,18 @@ contract TangTokenTest is Test {
             console2.log(abi.decode(data, (int256)));
         }
         assertEq(success, true);
+    }
+
+
+    function testawardPeopleTokens() public {
+        vm.expectEmit(false,true,false,false);
+        emit VRF_RequestSent(1, 3);
+        (bool success,) = address(proxyContract).call(abi.encodeWithSignature("awardPeopleTokens()"));
+        assertEq(success, true);
+    }
+
+    function testFulfillRandomWords() public {
+        
+
     }
 }
