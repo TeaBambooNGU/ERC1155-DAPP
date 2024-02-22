@@ -101,6 +101,7 @@ contract TangProxy is ERC1967Proxy {
     constructor(
         address _logic, 
         bytes memory _data, 
+        string memory uri_,
         string memory _wish,
         address[] memory _chainLinkDataFeeds,
         address _vrfCoordinator,
@@ -110,6 +111,9 @@ contract TangProxy is ERC1967Proxy {
         uint32 _callbackGasLimit,
         uint32 _numWords
         ) payable ERC1967Proxy(_logic, _data) {
+        name = "TANG1155";
+        symbol = "TANG";
+        _uri = uri_;
         _admin = address(new ProxyAdmin(msg.sender));
         // Set the storage value and emit an event for ERC-1967 compatibility
         ERC1967Utils.changeAdmin(_proxyAdmin());

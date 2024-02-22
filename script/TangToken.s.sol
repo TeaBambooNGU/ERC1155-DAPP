@@ -15,35 +15,25 @@ contract TangTokenScript is Script {
         _;
     }
 
-
-    function setUp() public {
-    }
-
-    function run() external init returns (TangToken){
-        vm.startBroadcast();
+    function run(
+        uint256 deployKey,
+        string memory _name,
+        string memory _symbol,
+        string memory _uri,
+        address _vrfCoordinator,
+        uint32 _numWords
+        ) external init returns (TangToken){
+            
+        vm.startBroadcast(deployKey);
         // ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/ 无聊猿的IPFS地址
         TangToken tangToken = new TangToken(
-            "TANG", 
-            "TANG1155", 
-            "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/",
-            chainLinkVRF.vrfCoordinator,
-            chainLinkVRF.numWords
-            );
+            _name,
+            _symbol,
+            _uri,
+            _vrfCoordinator,
+            _numWords);
         vm.stopBroadcast();
         return tangToken;
     }
 
-    function runByTest() external init returns (TangToken) {
-        vm.startBroadcast(admin);
-        // ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/ 无聊猿的IPFS地址
-        TangToken tangToken = new TangToken(
-            "TANG", 
-            "TANG1155", 
-            "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/",
-            chainLinkVRF.vrfCoordinator,
-            chainLinkVRF.numWords
-            );
-        vm.stopBroadcast();
-        return tangToken;
-    }
 }

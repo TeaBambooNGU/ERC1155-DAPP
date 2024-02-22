@@ -3,29 +3,29 @@ pragma solidity ^0.8.20;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {ChainLinkEnum} from "../../src/ChainLinkEnum.sol";
-import {TangTokenScript, TangToken} from "../../script/TangToken.s.sol";
-import {TangProxyScript, TangProxy} from "../../script/TangProxy.s.sol";
+import {TangProxy} from "../../script/TangProxy.s.sol";
 import {VRFCoordinatorV2Mock} from "chainlink-brownie-contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import {DeployTangContract} from "../../script/DeployTangContract.s.sol";
+import {Vm} from "forge-std/Vm.sol";
 
 
 
 contract TangTokenTest is Test {
     TangProxy public proxyContract;
-    address private user;
+    address private user ;
     address private admin;
+    VRFCoordinatorV2Mock private vrfCoordinatorV2Mock;
 
     event VRF_RequestSent(uint256 indexed requestId, uint32 indexed numWords);
-
+    event VRF_RequestFulfilled(uint256 indexed requestId, uint256[] randomWords);
+    event TangToken_Awarded(address indexed tangPeople);
 
     function setUp() public {
-        admin = makeAddr("admin");
-        user = makeAddr("receiver");
-        // 先部署逻辑合约
-        TangTokenScript tangtokenScript = new TangTokenScript();
-        TangToken tangtoken = tangtokenScript.runByTest();
-        // 再部署代理合约
-        TangProxyScript tangProxyScript = new TangProxyScript();
-        proxyContract = tangProxyScript.runByLogic(address(tangtoken));
+        (TangProxy tangProxy, address deployWallet,address _vrfCoordinatorV2Mock) = new DeployTangContract().run();
+        proxyContract = tangProxy;
+        admin = deployWallet;
+        user = makeAddr("user");
+        vrfCoordinatorV2Mock = VRFCoordinatorV2Mock(_vrfCoordinatorV2Mock);
     }
 
     function testBalanceOfTang() public {}
@@ -39,17 +39,18 @@ contract TangTokenTest is Test {
             assertEq(abi.decode(data, (uint256)), 520);
         }
     }
-
+    //TODO: ProxyAdmin 合约 create2 部署合约
     function testBurnTokens() public {
+        vm.startPrank(user);
         testMintTokens();
-        vm.prank(admin);
         (bool success,) =
             address(proxyContract).call(abi.encodeWithSignature("burn(address,uint256,uint256)", user, 1, 520));
+        vm.stopPrank();
         assertEq(success, true);
     }
 
     function testFailBurnTokens() public {
-        vm.prank(user);
+        vm.prank(admin);
         (bool success,) =
             address(proxyContract).call(abi.encodeWithSignature("burn(address,uint256,uint256)", user, 1, 520));
         assertEq(success, true);
@@ -91,6 +92,7 @@ contract TangTokenTest is Test {
 
 
     function testawardPeopleTokens() public {
+        vm.warp(7 days);
         vm.expectEmit(false,true,false,false);
         emit VRF_RequestSent(1, 3);
         (bool success,) = address(proxyContract).call(abi.encodeWithSignature("awardPeopleTokens()"));
@@ -98,7 +100,19 @@ contract TangTokenTest is Test {
     }
 
     function testFulfillRandomWords() public {
-        
+        //添加一个用户
+        testMintTokens();
+        // 捕获事件 获取requestId
+        vm.recordLogs();
+        testawardPeopleTokens();
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        uint256 requestId = uint256(entries[0].topics[1]);
 
+        vm.expectEmit(false,true,false,false);
+        uint256[] memory ss;
+        emit VRF_RequestFulfilled(1, ss);
+        vm.expectEmit(false,false,false,false);
+        emit TangToken_Awarded(address(this));
+        vrfCoordinatorV2Mock.fulfillRandomWords(requestId, address(proxyContract));
     }
 }

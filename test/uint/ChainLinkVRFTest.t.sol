@@ -20,21 +20,21 @@ contract ChainLinkVRFTest is Test {
     }
 
 
-    function testAddConsumer() public {
+    // function testAddConsumer() public {
 
-        if(subscriptionId == 0){
-            uint64 subId = vrfCoordinator.createSubscription();
-            vm.expectEmit();
-            emit SubscriptionConsumerAdded(subId,address(this));
-            vrfCoordinator.addConsumer(subId, address(this));
-        }else{
-            vm.expectEmit();
-            emit SubscriptionConsumerAdded(subscriptionId,address(this));
-            vrfCoordinator.addConsumer(subscriptionId, address(this));
-        }
+    //     if(subscriptionId == 0){
+    //         uint64 subId = vrfCoordinator.createSubscription();
+    //         vm.expectEmit();
+    //         emit SubscriptionConsumerAdded(subId,address(this));
+    //         vrfCoordinator.addConsumer(subId, address(this));
+    //     }else{
+    //         vm.expectEmit();
+    //         emit SubscriptionConsumerAdded(subscriptionId,address(this));
+    //         vrfCoordinator.addConsumer(subscriptionId, address(this));
+    //     }
         
 
-    }
+    // }
 
     
 

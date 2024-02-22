@@ -106,7 +106,7 @@ contract ChainLinkConfig is Script {
         NetWorkingChainLinkVRF memory netWorkingChainLinkVRF = NetWorkingChainLinkVRF({
             vrfCoordinator: address(vrfCoordinatorMock),
             linkToken: address(0),
-            keyHash: "",
+            keyHash: "aaassaaa",
             subscriptionId: 0,
             requestConfirmations: 3,
             callbackGasLimit: 1000000,
@@ -115,10 +115,17 @@ contract ChainLinkConfig is Script {
         return netWorkingChainLinkVRF;
     }
 
-    function addConsumer(address consumer) public {
-        vm.startBroadcast(SepoliaWallet);
+    function createSubscriptionId(uint256 _deployKey) public returns (uint64 subId) {
+        vm.startBroadcast(_deployKey);
         VRFCoordinatorV2Interface vrfCoordinator = VRFCoordinatorV2Interface(activeChainLinkVRF.vrfCoordinator);
-        vrfCoordinator.addConsumer(activeChainLinkVRF.subscriptionId, consumer);
+        subId = vrfCoordinator.createSubscription();
+        vm.stopBroadcast();
+    }
+
+    function addConsumer(uint256 _deployKey, address _consumer,uint64 _subscriptionId) public {
+        vm.startBroadcast(_deployKey);
+        VRFCoordinatorV2Interface vrfCoordinator = VRFCoordinatorV2Interface(activeChainLinkVRF.vrfCoordinator);
+        vrfCoordinator.addConsumer(_subscriptionId, _consumer);
         vm.stopBroadcast();
     }
 

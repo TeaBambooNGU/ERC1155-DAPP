@@ -71,8 +71,8 @@ abstract contract ERC1155Custom is Context, ERC165, IERC1155, IERC1155MetadataUR
         _admin = msg.sender;
     }
 
-    modifier OnlyAdmin() {
-        if (msg.sender != _admin) {
+    modifier OnlyMySelf(address account) {
+        if (msg.sender != account) {
             revert ERC1155Custom_OwnableUnauthorizedAccount(msg.sender);
         }
         _;

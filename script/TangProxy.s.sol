@@ -7,7 +7,6 @@ import {ChainLinkConfig, NetWorkingChainLinkPriceFeed, NetWorkingChainLinkVRF} f
 import {ChainLinkEnum} from "../src/ChainLinkEnum.sol";
 
 contract TangProxyScript is Script {
-    address private admin = makeAddr("admin");
 
     string private constant wish = "Wish Tang Wan always happy, healthy, and everything goes well";
 
@@ -23,55 +22,46 @@ contract TangProxyScript is Script {
     NetWorkingChainLinkVRF private chainLinkVRF;
     ChainLinkConfig private chainlinkConfig;
 
-    modifier init() {
-        admin = makeAddr("admin");
-        chainlinkConfig = new ChainLinkConfig();
-        NetWorkingChainLinkPriceFeed memory feedStruct = chainlinkConfig.getActiveChainlinkPriceFeed();
-        chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)] = feedStruct.priceFeedETH2USD;
-        chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.BTC_USD)] = feedStruct.priceFeedBTC2USD;
-        chainLinkVRF = chainlinkConfig.getActiveChainlinkVRF();
-        _;
-    }
+    // modifier init() {
+    //     chainlinkConfig = new ChainLinkConfig();
+    //     NetWorkingChainLinkPriceFeed memory feedStruct = chainlinkConfig.getActiveChainlinkPriceFeed();
+    //     chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.ETH_USD)] = feedStruct.priceFeedETH2USD;
+    //     chainLinkDataFeeds[uint256(ChainLinkEnum.dataFeedType.BTC_USD)] = feedStruct.priceFeedBTC2USD;
+    //     chainLinkVRF = chainlinkConfig.getActiveChainlinkVRF();
+    //     _;
+    // }
 
-    function setUp() public {}
-
-    function run() external init returns (TangProxy) {
-        vm.startBroadcast();
-        address tangLogic = 0xdBC7563dEC14a25801a3D199a21Bde084ae269AC;
-        TangProxy tangProxy = new TangProxy(
-            tangLogic,
-            "",
-            wish,
-            chainLinkDataFeeds,
-            chainLinkVRF.vrfCoordinator,
-            chainLinkVRF.keyHash,
-            chainLinkVRF.subscriptionId,
-            chainLinkVRF.requestConfirmations,
-            chainLinkVRF.callbackGasLimit,
-            chainLinkVRF.numWords
-        );
-        vm.stopBroadcast();
-        return tangProxy;
-    }
-
-    function runByLogic(address logicAddress) external init returns (TangProxy) {
-        vm.startBroadcast(admin);
+    function run(
+        uint256 deployKey,
+        address logicAddress,
+        bytes memory _data,
+        string memory _uri,
+        string memory _wish,
+        address[] memory _chainLinkDataFeeds,
+        address _vrfCoordinator,
+        bytes32 _keyHash,
+        uint64 _subscriptionId,
+        uint16 _requestConfirmations,
+        uint32 _callbackGasLimit,
+        uint32 _numWords
+        ) external returns (TangProxy) {
+        
+        vm.startBroadcast(deployKey);
         TangProxy tangProxy = new TangProxy(
             logicAddress,
-            "",
-            wish,
-            chainLinkDataFeeds,
-            chainLinkVRF.vrfCoordinator,
-            chainLinkVRF.keyHash,
-            chainLinkVRF.subscriptionId,
-            chainLinkVRF.requestConfirmations,
-            chainLinkVRF.callbackGasLimit,
-            chainLinkVRF.numWords
+            _data,
+            _wish,
+            _uri,
+            _chainLinkDataFeeds,
+            _vrfCoordinator,
+            _keyHash,
+            _subscriptionId,
+            _requestConfirmations,
+            _callbackGasLimit,
+            _numWords
         );
         vm.stopBroadcast();
-        // 添加VRF消费者
-        chainlinkConfig.addConsumer(address(tangProxy));
-        
         return tangProxy;
     }
+
 }

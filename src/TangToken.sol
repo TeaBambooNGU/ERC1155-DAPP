@@ -11,6 +11,7 @@ import {ConfirmedOwner} from "chainlink-brownie-contracts/src/v0.8/shared/access
 contract TangToken is ERC1155Custom,ConfirmedOwner{
     error OnlyCoordinatorCanFulfill(address have, address want);
     error TangToken_AwardedNotInTime(address sender, uint256 currentTimestamp);
+    error Request_NotFound(uint256 requestId);
 
 
     // 保证 逻辑合约和代理合约 状态变量存储结构一致
@@ -43,7 +44,7 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
         bool exists; // whether a requestId exists
         uint256[] randomWords;
     }
-    mapping(uint256 => RequestStatus) public s_requests; /* requestId --> requestStatus */
+    mapping(uint256 => RequestStatus) private s_requests; /* requestId --> requestStatus */
     // past requests Id.
     uint256[] public requestIds;
     uint256 public lastRequestId;
@@ -80,7 +81,7 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
         
     }
 
-    function burn(address from, uint256 id, uint256 value) external OnlyAdmin {
+    function burn(address from, uint256 id, uint256 value) external OnlyMySelf(from) {
         _burn(from,id,value);
     }
 
@@ -142,11 +143,16 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
         emit VRF_RequestSent(requestId, i_numWords);
     }
 
-    function fulfillRandomWords(
+    function rawFulfillRandomWords(
         uint256 _requestId,
         uint256[] memory _randomWords
-    ) internal  {
-        require(s_requests[_requestId].exists, "request not found");
+    ) external  {
+        if(!s_requests[_requestId].exists){
+            revert Request_NotFound(_requestId);
+        }
+        if(msg.sender != address(vrfCoordinator)){
+            revert OnlyCoordinatorCanFulfill(msg.sender, address(vrfCoordinator));
+        }
         s_requests[_requestId].fulfilled = true;
         s_requests[_requestId].randomWords = _randomWords;
         emit VRF_RequestFulfilled(_requestId, _randomWords);
