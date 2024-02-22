@@ -11,7 +11,7 @@ import {ConfirmedOwner} from "chainlink-brownie-contracts/src/v0.8/shared/access
 contract TangToken is ERC1155Custom,ConfirmedOwner{
     error OnlyCoordinatorCanFulfill(address have, address want);
     error TangToken_AwardedNotInTime(address sender, uint256 currentTimestamp);
-    error Request_NotFound(uint256 requestId);
+    error RequestNotFound(uint256 requestId);
 
 
     // 保证 逻辑合约和代理合约 状态变量存储结构一致
@@ -148,7 +148,7 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
         uint256[] memory _randomWords
     ) external  {
         if(!s_requests[_requestId].exists){
-            revert Request_NotFound(_requestId);
+            revert RequestNotFound(_requestId);
         }
         if(msg.sender != address(vrfCoordinator)){
             revert OnlyCoordinatorCanFulfill(msg.sender, address(vrfCoordinator));
