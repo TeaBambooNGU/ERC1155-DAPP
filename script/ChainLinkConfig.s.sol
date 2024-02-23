@@ -44,11 +44,9 @@ contract ChainLinkConfig is Script {
         if (block.chainid == 11155111) {
             activeChainlinkPriceFeed = getSepoliaPriceFeed();
             activeChainLinkVRF = getSepoliaVRF();
-            activeDeployOwnerKey = vm.envUint("SEPOLIA_WALLET_KEY");
         } else if (block.chainid == 31337) {
             activeChainlinkPriceFeed = getAnvilPriceFeed();
             activeChainLinkVRF = getAnvilVRF();
-            activeDeployOwnerKey = vm.envUint("ANVIL_WALLET_KEY");
         }
     }
 
@@ -135,10 +133,6 @@ contract ChainLinkConfig is Script {
 
     function getActiveChainlinkVRF() public view returns (NetWorkingChainLinkVRF memory) {
         return activeChainLinkVRF;
-    }
-
-    function getActiveDeployOwner() public view returns (uint256) {
-        return activeDeployOwnerKey;
     }
 
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.20;
 
-import {Test, console2} from "forge-std/Test.sol";
+import {Test, console, console2} from "forge-std/Test.sol";
 import {ChainLinkEnum} from "../../src/ChainLinkEnum.sol";
 import {TangProxy} from "../../script/TangProxy.s.sol";
 import {VRFCoordinatorV2Mock} from "chainlink-brownie-contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
@@ -11,6 +11,8 @@ import {Vm} from "forge-std/Vm.sol";
 
 
 contract TangTokenTest is Test {
+    error OnlySimulatedBackend();
+
     TangProxy public proxyContract;
     address private user ;
     address private admin;
@@ -26,6 +28,13 @@ contract TangTokenTest is Test {
         admin = deployWallet;
         user = makeAddr("user");
         vrfCoordinatorV2Mock = VRFCoordinatorV2Mock(_vrfCoordinatorV2Mock);
+    }
+
+    modifier OnlyAnvil() {
+        if(block.chainid != 31337){
+            return;
+        }
+        _;
     }
 
     function testBalanceOfTang() public {}
@@ -95,11 +104,34 @@ contract TangTokenTest is Test {
         vm.warp(7 days);
         vm.expectEmit(false,true,false,false);
         emit VRF_RequestSent(1, 3);
-        (bool success,) = address(proxyContract).call(abi.encodeWithSignature("awardPeopleTokens()"));
+        (bool success,) = address(proxyContract).call(abi.encodeWithSignature("performUpkeep(bytes)",""));
         assertEq(success, true);
     }
 
-    function testFulfillRandomWords() public {
+    function testCheckUpkeep() public {
+        // prank 第一个参数把msg.sender设置为0  第二个参数把tx.orgin设置为0
+        vm.prank(address(0),address(0));
+        (bool success, bytes memory data) = address(proxyContract).call(abi.encodeWithSignature("checkUpkeep(bytes)",""));
+        if(success){
+             (bool upkeepNeeded, bytes memory performData)= abi.decode(data, (bool,bytes));
+             console.log("upkeepNeeded= %s performData= %s",upkeepNeeded,string(performData));
+        }
+        assertEq(success, true);
+    }
+
+    function testFailCheckUpkeep() public {
+        (bool success, ) = address(proxyContract).call(abi.encodeWithSignature("checkUpkeep(bytes)",""));
+        assertEq(success, true);
+    }
+
+    function testOnlySimulatedBackend() public {
+        vm.expectRevert(OnlySimulatedBackend.selector);
+        (bool success, ) = address(proxyContract).call(abi.encodeWithSignature("checkUpkeep(bytes)",""));
+        console.log(success);
+        assertEq(success, true);
+    }
+
+    function testFulfillRandomWords() public OnlyAnvil {
         //添加一个用户
         testMintTokens();
         // 捕获事件 获取requestId

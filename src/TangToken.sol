@@ -6,9 +6,9 @@ import {AggregatorV3Interface} from "chainlink-brownie-contracts/src/v0.8/interf
 import {ChainLinkEnum} from "./ChainLinkEnum.sol";
 import {VRFCoordinatorV2Interface} from "chainlink-brownie-contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import {ConfirmedOwner} from "chainlink-brownie-contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+import {AutomationCompatible} from "chainlink-brownie-contracts/src/v0.8/automation/AutomationCompatible.sol";
 
-
-contract TangToken is ERC1155Custom,ConfirmedOwner{
+contract TangToken is ERC1155Custom,ConfirmedOwner,AutomationCompatible{
     error OnlyCoordinatorCanFulfill(address have, address want);
     error TangToken_AwardedNotInTime(address sender, uint256 currentTimestamp);
     error RequestNotFound(uint256 requestId);
@@ -119,9 +119,22 @@ contract TangToken is ERC1155Custom,ConfirmedOwner{
         return answer;
     }
 
-    function awardPeopleTokens() external {
+    function checkUpkeep(bytes calldata /*checkData8*/) external view override cannotExecute  returns (bool upkeepNeeded, bytes memory performData) {
+        if(s_lastAwardTime + AWARD_INTERVAL < block.timestamp){
+            upkeepNeeded = true;
+        }
 
-        if(s_lastAwardTime + AWARD_INTERVAL > block.timestamp){
+        performData = "";
+        
+    }
+    function performUpkeep(bytes calldata /*performData*/) external override{
+        awardPeopleTokens();
+    }
+
+
+    function awardPeopleTokens() private {
+
+        if(s_lastAwardTime + AWARD_INTERVAL >= block.timestamp){
             revert TangToken_AwardedNotInTime(msg.sender, block.timestamp);
         }
 
